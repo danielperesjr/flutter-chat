@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/register.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -84,8 +85,7 @@ class _LoginState extends State<Login> {
                     color: Colors.lightBlue,
                     padding: EdgeInsets.fromLTRB(32.0, 16.0, 32.0, 16.0),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(32)
-                    ),
+                        borderRadius: BorderRadius.circular(32)),
                   ),
                 ),
                 Padding(
@@ -93,14 +93,19 @@ class _LoginState extends State<Login> {
                   child: Center(
                     child: GestureDetector(
                       child: Text(
-                          "Ainda não possui conta? Cadastre-se!",
+                        "Ainda não possui conta? Cadastre-se!",
                         style: TextStyle(
                           color: Colors.blueGrey,
                           fontSize: 16.0,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      onTap: (){},
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Register(),
+                        ),
+                      ),
                     ),
                   ),
                 ),
