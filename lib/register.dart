@@ -8,6 +8,42 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
+  TextEditingController controllerName = TextEditingController();
+  TextEditingController controllerEmail = TextEditingController();
+  TextEditingController controllerPass = TextEditingController();
+  String msgError = "";
+
+  void _validarCampos() {
+    String name = controllerName.text;
+    String email = controllerEmail.text;
+    String pass = controllerPass.text;
+
+    if (name.isNotEmpty) {
+      if (email.isNotEmpty && email.contains("@")) {
+        if (pass.isNotEmpty && pass.length >= 6) {
+          setState(() {
+            msgError = "";
+          });
+          _cadastrarUsuario();
+        } else {
+          setState(() {
+            msgError = "Preencha a senha com no mínimo 6 caracteres!";
+          });
+        }
+      } else {
+        setState(() {
+          msgError = "Preencha o e-mail corretamente!";
+        });
+      }
+    } else {
+      setState(() {
+        msgError = "Preencha o nome!";
+      });
+    }
+  }
+
+  void _cadastrarUsuario() {}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,12 +71,13 @@ class _RegisterState extends State<Register> {
                 Padding(
                   padding: EdgeInsets.only(bottom: 8.0),
                   child: TextField(
+                    controller: controllerName,
                     autofocus: true,
                     keyboardType: TextInputType.text,
                     style: TextStyle(fontSize: 20.0),
                     decoration: InputDecoration(
                       contentPadding:
-                      EdgeInsets.fromLTRB(32.0, 16.0, 32.0, 16.0),
+                          EdgeInsets.fromLTRB(32.0, 16.0, 32.0, 16.0),
                       hintText: "Nome",
                       filled: true,
                       fillColor: Colors.white,
@@ -53,6 +90,7 @@ class _RegisterState extends State<Register> {
                 Padding(
                   padding: EdgeInsets.only(bottom: 8.0),
                   child: TextField(
+                    controller: controllerEmail,
                     keyboardType: TextInputType.emailAddress,
                     style: TextStyle(fontSize: 20.0),
                     decoration: InputDecoration(
@@ -68,7 +106,9 @@ class _RegisterState extends State<Register> {
                   ),
                 ),
                 TextField(
+                  controller: controllerPass,
                   keyboardType: TextInputType.text,
+                  obscureText: true,
                   style: TextStyle(fontSize: 20.0),
                   decoration: InputDecoration(
                     contentPadding: EdgeInsets.fromLTRB(32.0, 16.0, 32.0, 16.0),
@@ -83,7 +123,9 @@ class _RegisterState extends State<Register> {
                 Padding(
                   padding: EdgeInsets.only(top: 16.0, bottom: 10.0),
                   child: MaterialButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      _validarCampos();
+                    },
                     child: Text(
                       "Cadastrar",
                       style: TextStyle(
@@ -95,6 +137,15 @@ class _RegisterState extends State<Register> {
                     padding: EdgeInsets.fromLTRB(32.0, 16.0, 32.0, 16.0),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(32)),
+                  ),
+                ),
+                Center(
+                  child: Text(
+                    msgError,
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 20,
+                    ),
                   ),
                 ),
               ],
