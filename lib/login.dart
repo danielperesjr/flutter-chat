@@ -113,6 +113,7 @@ class _LoginState extends State<Login> {
                 TextField(
                   controller: controllerPass,
                   keyboardType: TextInputType.text,
+                  obscureText: true,
                   style: TextStyle(fontSize: 20.0),
                   decoration: InputDecoration(
                     contentPadding: EdgeInsets.fromLTRB(32.0, 16.0, 32.0, 16.0),
