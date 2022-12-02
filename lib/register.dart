@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_chat/home.dart';
+
+import 'model/chat_user.dart';
 
 class Register extends StatefulWidget {
   const Register({Key? key}) : super(key: key);
@@ -24,7 +28,11 @@ class _RegisterState extends State<Register> {
           setState(() {
             msgError = "";
           });
-          _cadastrarUsuario();
+          ChatUser user = ChatUser();
+          user.name = name;
+          user.email = email;
+          user.pass = pass;
+          _registerUser(user);
         } else {
           setState(() {
             msgError = "Preencha a senha com no mínimo 6 caracteres!";
@@ -42,7 +50,24 @@ class _RegisterState extends State<Register> {
     }
   }
 
-  void _cadastrarUsuario() {}
+  void _registerUser(ChatUser user) {
+    FirebaseAuth auth = FirebaseAuth.instance;
+
+    auth
+        .createUserWithEmailAndPassword(email: user.email, password: user.pass,)
+        .then((firebaseUser) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Home(),
+        ),
+      );
+    }).catchError((error) {
+      setState(() {
+        msgError = "Erro ao cadastrar o usuário, por favor tente novamente.";
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
