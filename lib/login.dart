@@ -35,7 +35,7 @@ class _LoginState extends State<Login> {
           msgError = "Preencha a senha!";
         });
       }
-    }else {
+    } else {
       setState(() {
         msgError = "Preencha o e-mail corretamente!";
       });
@@ -44,9 +44,10 @@ class _LoginState extends State<Login> {
 
   void _loginUser(ChatUser user) {
     FirebaseAuth auth = FirebaseAuth.instance;
-    auth.signInWithEmailAndPassword(email: user.email, password: user.pass)
+    auth
+        .signInWithEmailAndPassword(email: user.email, password: user.pass)
         .then((firebaseUser) {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => Home(),
@@ -55,9 +56,28 @@ class _LoginState extends State<Login> {
     }).catchError((error) {
       setState(() {
         msgError =
-        "Erro ao autenticar o usuário, verifique os dados e tente novamente.";
+            "Erro ao autenticar o usuário, verifique os dados e tente novamente.";
       });
     });
+  }
+
+  Future _verifyLoggedUser() async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+    User? loggedUser = await auth.currentUser;
+    if (loggedUser != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Home(),
+        ),
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    _verifyLoggedUser();
+    super.initState();
   }
 
   @override
@@ -100,7 +120,7 @@ class _LoginState extends State<Login> {
                     style: TextStyle(fontSize: 20.0),
                     decoration: InputDecoration(
                       contentPadding:
-                      EdgeInsets.fromLTRB(32.0, 16.0, 32.0, 16.0),
+                          EdgeInsets.fromLTRB(32.0, 16.0, 32.0, 16.0),
                       hintText: "E-mail",
                       filled: true,
                       fillColor: Colors.white,
@@ -154,13 +174,12 @@ class _LoginState extends State<Login> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      onTap: () =>
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => Register(),
-                            ),
-                          ),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Register(),
+                        ),
+                      ),
                     ),
                   ),
                 ),
