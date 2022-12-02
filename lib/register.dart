@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_chat/home.dart';
 
@@ -54,9 +55,18 @@ class _RegisterState extends State<Register> {
     FirebaseAuth auth = FirebaseAuth.instance;
 
     auth
-        .createUserWithEmailAndPassword(email: user.email, password: user.pass,)
+        .createUserWithEmailAndPassword(
+      email: user.email,
+      password: user.pass,
+    )
         .then((firebaseUser) {
-      Navigator.push(
+      FirebaseFirestore db = FirebaseFirestore.instance;
+
+      db.collection("users").doc(firebaseUser.user?.uid).set(
+            user.toMap(),
+          );
+
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => Home(),
