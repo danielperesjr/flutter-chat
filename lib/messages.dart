@@ -11,6 +11,13 @@ class Messages extends StatefulWidget {
 }
 
 class _MessagesState extends State<Messages> {
+  List<String> messageList = [
+    "Olá, tudo bem?",
+    "Me passa o nome daquela série!",
+    "Vamos sair hoje?",
+    "Você não vai acreditar...",
+  ];
+
   TextEditingController controllerMessage = TextEditingController();
 
   _sendMessage() {}
@@ -60,6 +67,35 @@ class _MessagesState extends State<Messages> {
       ),
     );
 
+    var messageListView = Expanded(
+      child: ListView.builder(
+        itemCount: messageList.length,
+        itemBuilder: (context, index) {
+          return Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: EdgeInsets.all(6.0),
+              child: Container(
+                padding: EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.lightBlueAccent,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(8.0),
+                  ),
+                ),
+                child: Text(
+                  messageList[index],
+                  style: TextStyle(
+                    fontSize: 18.0,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.contact.name),
@@ -77,6 +113,7 @@ class _MessagesState extends State<Messages> {
             padding: EdgeInsets.all(8.0),
             child: Column(
               children: [
+                messageListView,
                 messageBox,
               ],
             ),
