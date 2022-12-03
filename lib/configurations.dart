@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
@@ -11,6 +13,9 @@ class Configurations extends StatefulWidget {
 
 class _ConfigurationsState extends State<Configurations> {
   dynamic _image;
+  bool _isUploading = false;
+  String? _idLoggedUser;
+  String _imageUrl = "";
   TextEditingController controllerName = TextEditingController();
 
   Future _recoverImage(String sourceImage) async {
@@ -27,8 +32,53 @@ class _ConfigurationsState extends State<Configurations> {
     }
 
     setState(() {
-      _image = selectedImage;
+      _image = File(selectedImage!.path);
+      if (_image != null) {
+        _isUploading = true;
+        _imageUpload();
+      }
     });
+  }
+
+  Future _imageUpload() async {
+    FirebaseStorage storage = FirebaseStorage.instance;
+    Reference rootFolder = storage.ref();
+    Reference file = rootFolder.child("profile").child("$_idLoggedUser.jpg");
+
+    UploadTask task = file.putFile(_image);
+
+    task.snapshotEvents.listen((TaskSnapshot taskSnapshot) {
+      if (taskSnapshot.state == TaskState.running) {
+        setState(() {
+          _isUploading = true;
+        });
+      } else if (taskSnapshot.state == TaskState.success) {
+        _recoverImageUrl(taskSnapshot);
+        setState(() {
+          _isUploading = false;
+        });
+      }
+    });
+  }
+
+  void _recoverUserData() async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+    User? loggedUser = await auth.currentUser;
+    _idLoggedUser = loggedUser!.uid;
+  }
+
+  Future _recoverImageUrl(TaskSnapshot taskSnapshot) async {
+    String url = await taskSnapshot.ref.getDownloadURL();
+
+    setState(() {
+      _imageUrl = url;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _recoverUserData();
   }
 
   @override
@@ -43,11 +93,12 @@ class _ConfigurationsState extends State<Configurations> {
           child: SingleChildScrollView(
             child: Column(
               children: [
+                _isUploading ? CircularProgressIndicator() : Container(),
                 CircleAvatar(
                   radius: 100.0,
                   backgroundColor: Colors.grey,
-                  backgroundImage: NetworkImage(
-                      "https://firebasestorage.googleapis.com/v0/b/flutter-chat-48bc6.appspot.com/o/profile%2Fperfil3.jpg?alt=media&token=6df2a5b4-70e4-46ab-856f-e6f0db50ebc3"),
+                  backgroundImage:
+                      _imageUrl != "" ? NetworkImage(_imageUrl) : null,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
