@@ -16,7 +16,7 @@ class _ConfigurationsState extends State<Configurations> {
   dynamic _image;
   bool _isUploading = false;
   String? _idLoggedUser;
-  String _imageUrl = "";
+  String? _imageUrl;
   TextEditingController controllerName = TextEditingController();
 
   Future _recoverImage(String sourceImage) async {
@@ -64,8 +64,20 @@ class _ConfigurationsState extends State<Configurations> {
 
   void _recoverUserData() async {
     FirebaseAuth auth = FirebaseAuth.instance;
-    User? loggedUser = await auth.currentUser;
+    User? loggedUser = auth.currentUser;
     _idLoggedUser = loggedUser!.uid;
+
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    DocumentSnapshot snapshot = await db.collection("users")
+        .doc(_idLoggedUser)
+        .get();
+
+    dynamic userData = await snapshot.data();
+    controllerName.text = userData["name"];
+
+    setState(() {
+      _imageUrl = userData["url"];
+    });
   }
 
   Future _recoverImageUrl(TaskSnapshot taskSnapshot) async {
@@ -77,15 +89,13 @@ class _ConfigurationsState extends State<Configurations> {
     });
   }
 
-  void _updateImageUrlFirestore (String url){
-
+  void _updateImageUrlFirestore(String imageUrl) {
     Map<String, dynamic> updateData = {
-      "url": url
+      "url": imageUrl
     };
 
     FirebaseFirestore db = FirebaseFirestore.instance;
     db.collection("users").doc(_idLoggedUser).update(updateData);
-
   }
 
   @override
@@ -106,12 +116,17 @@ class _ConfigurationsState extends State<Configurations> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                _isUploading ? CircularProgressIndicator() : Container(),
+                Container(
+                    padding: EdgeInsets.all(16.0),
+                    child: _isUploading
+                        ? CircularProgressIndicator()
+                        : Container(),
+                ),
                 CircleAvatar(
                   radius: 100.0,
                   backgroundColor: Colors.grey,
                   backgroundImage:
-                      _imageUrl != "" ? NetworkImage(_imageUrl) : null,
+                  _imageUrl != null ? NetworkImage(_imageUrl!) : null,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -135,7 +150,7 @@ class _ConfigurationsState extends State<Configurations> {
                     style: TextStyle(fontSize: 20.0),
                     decoration: InputDecoration(
                       contentPadding:
-                          EdgeInsets.fromLTRB(32.0, 16.0, 32.0, 16.0),
+                      EdgeInsets.fromLTRB(32.0, 16.0, 32.0, 16.0),
                       hintText: "Nome",
                       filled: true,
                       fillColor: Colors.white,
