@@ -3,6 +3,7 @@ class ChatUser {
   late String _name;
   late String _email;
   late String _pass;
+  late String _imageUrl;
 
   ChatUser();
 
@@ -30,5 +31,11 @@ class ChatUser {
 
   set pass(String value) {
     _pass = value;
+  }
+
+  String get imageUrl => _imageUrl;
+
+  set imageUrl(String value) {
+    _imageUrl = value;
   }
 }
