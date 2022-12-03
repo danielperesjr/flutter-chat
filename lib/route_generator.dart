@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/configurations.dart';
 import 'package:flutter_chat/home.dart';
 import 'package:flutter_chat/login.dart';
 import 'package:flutter_chat/register.dart';
@@ -22,6 +23,10 @@ class RouteGenerator {
       case "/home":
         return MaterialPageRoute(
           builder: (_) => Home(),
+        );
+      case "/configurations":
+        return MaterialPageRoute(
+          builder: (_) => Configurations(),
         );
       default:
         _routeError();
