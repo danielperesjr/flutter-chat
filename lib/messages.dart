@@ -100,7 +100,19 @@ class _MessagesState extends State<Messages> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.contact.name),
+        title: Row(
+          children: [
+            CircleAvatar(
+              maxRadius: 20.0,
+              backgroundColor: Colors.grey,
+              backgroundImage: NetworkImage(widget.contact.imageUrl),
+            ),
+            Padding(
+              padding: EdgeInsets.only(left: 8.0),
+              child: Text(widget.contact.name),
+            ),
+          ],
+        ),
       ),
       body: Container(
         width: MediaQuery.of(context).size.width,
