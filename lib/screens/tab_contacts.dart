@@ -68,23 +68,30 @@ class _TabContactsState extends State<TabContacts> {
             return ListView.builder(
               itemCount: snapshot.requireData.length,
               itemBuilder: (context, index) {
-                  List<ChatUser> itenList = snapshot.requireData;
-                  ChatUser chatUser = itenList[index];
-                  return ListTile(
-                    contentPadding: EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                    leading: CircleAvatar(
-                      maxRadius: 30.0,
-                      backgroundColor: Colors.grey,
-                      backgroundImage: NetworkImage(chatUser.imageUrl),
+                List<ChatUser> itenList = snapshot.requireData;
+                ChatUser chatUser = itenList[index];
+                return ListTile(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      "/messages",
+                      arguments: chatUser,
+                    );
+                  },
+                  contentPadding: EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                  leading: CircleAvatar(
+                    maxRadius: 30.0,
+                    backgroundColor: Colors.grey,
+                    backgroundImage: NetworkImage(chatUser.imageUrl),
+                  ),
+                  title: Text(
+                    chatUser.name,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
-                    title: Text(
-                      chatUser.name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  );
+                  ),
+                );
               },
             );
         }

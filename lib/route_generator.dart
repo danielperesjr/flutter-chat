@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat/configurations.dart';
 import 'package:flutter_chat/home.dart';
 import 'package:flutter_chat/login.dart';
+import 'package:flutter_chat/messages.dart';
 import 'package:flutter_chat/register.dart';
 
 class RouteGenerator {
 
   static Route<dynamic>? generateRoute(RouteSettings settings) {
+
+    final dynamic args = settings.arguments;
+
     switch (settings.name) {
       case "/":
         return MaterialPageRoute(
@@ -27,6 +31,10 @@ class RouteGenerator {
       case "/configurations":
         return MaterialPageRoute(
           builder: (_) => Configurations(),
+        );
+      case "/messages":
+        return MaterialPageRoute(
+          builder: (_) => Messages(args),
         );
       default:
         _routeError();
