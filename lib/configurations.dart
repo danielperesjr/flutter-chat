@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -69,10 +70,22 @@ class _ConfigurationsState extends State<Configurations> {
 
   Future _recoverImageUrl(TaskSnapshot taskSnapshot) async {
     String url = await taskSnapshot.ref.getDownloadURL();
+    _updateImageUrlFirestore(url);
 
     setState(() {
       _imageUrl = url;
     });
+  }
+
+  void _updateImageUrlFirestore (String url){
+
+    Map<String, dynamic> updateData = {
+      "url": url
+    };
+
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    db.collection("users").doc(_idLoggedUser).update(updateData);
+
   }
 
   @override
