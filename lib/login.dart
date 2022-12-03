@@ -47,12 +47,7 @@ class _LoginState extends State<Login> {
     auth
         .signInWithEmailAndPassword(email: user.email, password: user.pass)
         .then((firebaseUser) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Home(),
-        ),
-      );
+      Navigator.pushReplacementNamed(context, "/home");
     }).catchError((error) {
       setState(() {
         msgError =
@@ -65,12 +60,7 @@ class _LoginState extends State<Login> {
     FirebaseAuth auth = FirebaseAuth.instance;
     User? loggedUser = await auth.currentUser;
     if (loggedUser != null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Home(),
-        ),
-      );
+      Navigator.pushReplacementNamed(context, "/home");
     }
   }
 

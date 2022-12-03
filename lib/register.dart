@@ -58,20 +58,11 @@ class _RegisterState extends State<Register> {
         .createUserWithEmailAndPassword(
       email: user.email,
       password: user.pass,
-    )
-        .then((firebaseUser) {
+    ).then((firebaseUser) {
       FirebaseFirestore db = FirebaseFirestore.instance;
+      db.collection("users").doc(firebaseUser.user?.uid).set(user.toMap());
 
-      db.collection("users").doc(firebaseUser.user?.uid).set(
-            user.toMap(),
-          );
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Home(),
-        ),
-      );
+      Navigator.pushNamedAndRemoveUntil(context, "/home", (_) => false);
     }).catchError((error) {
       setState(() {
         msgError = "Erro ao cadastrar o usuário, por favor tente novamente.";
