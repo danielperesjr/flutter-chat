@@ -89,6 +89,16 @@ class _ConfigurationsState extends State<Configurations> {
     });
   }
 
+  void _updateNameFirestore() {
+    String name = controllerName.text;
+    Map<String, dynamic> updateData = {
+      "name": name
+    };
+
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    db.collection("users").doc(_idLoggedUser).update(updateData);
+  }
+
   void _updateImageUrlFirestore(String imageUrl) {
     Map<String, dynamic> updateData = {
       "url": imageUrl
@@ -163,7 +173,9 @@ class _ConfigurationsState extends State<Configurations> {
                 Padding(
                   padding: EdgeInsets.only(top: 16.0, bottom: 10.0),
                   child: MaterialButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      _updateNameFirestore();
+                    },
                     child: Text(
                       "Salvar",
                       style: TextStyle(
