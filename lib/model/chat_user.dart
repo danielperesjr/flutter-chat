@@ -1,5 +1,5 @@
 class ChatUser {
-
+  late String _userId;
   late String _name;
   late String _email;
   late String _pass;
@@ -13,6 +13,13 @@ class ChatUser {
       "email": this.email
     };
     return map;
+  }
+
+
+  String get userId => _userId;
+
+  set userId(String value) {
+    _userId = value;
   }
 
   String get name => _name;

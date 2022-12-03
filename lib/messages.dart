@@ -15,6 +15,7 @@ class Messages extends StatefulWidget {
 
 class _MessagesState extends State<Messages> {
   String? _idLoggedUser;
+  String? _idReceiverUser;
   List<String> messageList = [
     "Olá, tudo bem?",
     "Me passa o nome daquela série!",
@@ -25,32 +26,36 @@ class _MessagesState extends State<Messages> {
   TextEditingController controllerMessage = TextEditingController();
 
   _sendMessage() {
-
     String textMessage = controllerMessage.text;
-    if(textMessage.isNotEmpty){
+    if (textMessage.isNotEmpty) {
       Message message = Message();
       message.userId = _idLoggedUser!;
       message.message = textMessage;
       message.imageUrl = "";
       message.messageType = "texto";
 
-      _saveMessage();
+      _saveMessage(_idLoggedUser!, _idReceiverUser!, message);
     }
-
   }
 
   _sendImage() {}
 
-  _saveMessage(){
+  Future _saveMessage(String idSender, String idReceiver, Message msg) async {
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    await db
+        .collection("messages")
+        .doc(idSender)
+        .collection(idReceiver)
+        .add(msg.toMap());
 
-
-
+    controllerMessage.clear();
   }
 
   void _recoverUserData() async {
     FirebaseAuth auth = FirebaseAuth.instance;
     User? loggedUser = auth.currentUser;
     _idLoggedUser = loggedUser!.uid;
+    _idReceiverUser = widget.contact.userId;
   }
 
   @override
@@ -82,7 +87,7 @@ class _MessagesState extends State<Messages> {
                     borderRadius: BorderRadius.circular(32),
                   ),
                   prefixIcon: IconButton(
-                    onPressed: _sendImage(),
+                    onPressed: () => _sendImage(),
                     icon: Icon(Icons.camera_alt),
                   ),
                 ),
@@ -96,7 +101,7 @@ class _MessagesState extends State<Messages> {
               color: Colors.white,
             ),
             mini: true,
-            onPressed: _sendMessage(),
+            onPressed: () => _sendMessage(),
           ),
         ],
       ),

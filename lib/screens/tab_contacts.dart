@@ -34,6 +34,7 @@ class _TabContactsState extends State<TabContacts> {
       chatUser.email = userData["email"];
       chatUser.name = userData["name"];
       chatUser.imageUrl = userData["url"];
+      chatUser.userId = item.id;
 
       chatUserList.add(chatUser);
     }
