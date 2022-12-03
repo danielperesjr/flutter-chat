@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/model/chat_user.dart';
+import 'package:flutter_chat/model/message.dart';
 
 class Messages extends StatefulWidget {
   ChatUser contact;
@@ -11,6 +14,7 @@ class Messages extends StatefulWidget {
 }
 
 class _MessagesState extends State<Messages> {
+  String? _idLoggedUser;
   List<String> messageList = [
     "Olá, tudo bem?",
     "Me passa o nome daquela série!",
@@ -20,9 +24,40 @@ class _MessagesState extends State<Messages> {
 
   TextEditingController controllerMessage = TextEditingController();
 
-  _sendMessage() {}
+  _sendMessage() {
+
+    String textMessage = controllerMessage.text;
+    if(textMessage.isNotEmpty){
+      Message message = Message();
+      message.userId = _idLoggedUser!;
+      message.message = textMessage;
+      message.imageUrl = "";
+      message.messageType = "texto";
+
+      _saveMessage();
+    }
+
+  }
 
   _sendImage() {}
+
+  _saveMessage(){
+
+
+
+  }
+
+  void _recoverUserData() async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+    User? loggedUser = auth.currentUser;
+    _idLoggedUser = loggedUser!.uid;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _recoverUserData();
+  }
 
   @override
   Widget build(BuildContext context) {
