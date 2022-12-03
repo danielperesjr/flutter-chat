@@ -71,11 +71,13 @@ class _MessagesState extends State<Messages> {
       child: ListView.builder(
         itemCount: messageList.length,
         itemBuilder: (context, index) {
+          double containerWidth = MediaQuery.of(context).size.width * 0.8;
           return Align(
             alignment: Alignment.centerRight,
             child: Padding(
               padding: EdgeInsets.all(6.0),
               child: Container(
+                width: containerWidth,
                 padding: EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
                   color: Colors.lightBlueAccent,
