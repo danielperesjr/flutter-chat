@@ -3,6 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/model/chat_user.dart';
 import 'package:flutter_chat/model/message.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
+
+import 'package:image_picker/image_picker.dart';
 
 class Messages extends StatefulWidget {
   ChatUser contact;
@@ -16,12 +20,7 @@ class Messages extends StatefulWidget {
 class _MessagesState extends State<Messages> {
   String? _idLoggedUser;
   String? _idReceiverUser;
-  List<String> messageList2 = [
-    "Olá, tudo bem?",
-    "Me passa o nome daquela série!",
-    "Vamos sair hoje?",
-    "Você não vai acreditar...",
-  ];
+  bool _isUploading = false;
 
   TextEditingController controllerMessage = TextEditingController();
   FirebaseFirestore db = FirebaseFirestore.instance;
@@ -40,7 +39,49 @@ class _MessagesState extends State<Messages> {
     }
   }
 
-  _sendImage() {}
+  void _sendImage() async {
+    final ImagePicker picker = ImagePicker();
+    XFile? selectedImage;
+    selectedImage = await picker.pickImage(source: ImageSource.gallery);
+
+    _isUploading = true;
+
+    String imageName = DateTime.now().millisecondsSinceEpoch.toString();
+    FirebaseStorage storage = FirebaseStorage.instance;
+    Reference rootFolder = storage.ref();
+    Reference file = rootFolder
+        .child("messages")
+        .child(_idLoggedUser!)
+        .child("$imageName.jpg");
+
+    UploadTask task = file.putFile(File(selectedImage!.path));
+
+    task.snapshotEvents.listen((TaskSnapshot taskSnapshot) {
+      if (taskSnapshot.state == TaskState.running) {
+        setState(() {
+          _isUploading = true;
+        });
+      } else if (taskSnapshot.state == TaskState.success) {
+        _recoverImageUrl(taskSnapshot);
+        setState(() {
+          _isUploading = false;
+        });
+      }
+    });
+  }
+
+  Future _recoverImageUrl(TaskSnapshot taskSnapshot) async {
+    String url = await taskSnapshot.ref.getDownloadURL();
+
+    Message message = Message();
+    message.userId = _idLoggedUser!;
+    message.message = "";
+    message.imageUrl = url;
+    message.messageType = "imagem";
+
+    _saveMessage(_idLoggedUser!, _idReceiverUser!, message);
+    _saveMessage(_idReceiverUser!, _idLoggedUser!, message);
+  }
 
   Future _saveMessage(String idSender, String idReceiver, Message msg) async {
     await db
@@ -87,10 +128,8 @@ class _MessagesState extends State<Messages> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(32),
                   ),
-                  prefixIcon: IconButton(
-                    onPressed: () => _sendImage(),
-                    icon: Icon(Icons.camera_alt),
-                  ),
+                  prefixIcon: _isUploading == true ? CircularProgressIndicator()
+                  : IconButton(onPressed: () => _sendImage(), icon: Icon(Icons.camera_alt)),
                 ),
               ),
             ),
@@ -138,13 +177,14 @@ class _MessagesState extends State<Messages> {
                 child: ListView.builder(
                   itemCount: querySnapshot.docs.length,
                   itemBuilder: (context, index) {
-                    List<DocumentSnapshot> messageList = querySnapshot.docs.toList();
+                    List<DocumentSnapshot> messageList =
+                        querySnapshot.docs.toList();
                     DocumentSnapshot item = messageList[index];
                     double containerWidth =
                         MediaQuery.of(context).size.width * 0.8;
                     Alignment alignment = Alignment.centerRight;
                     Color color = Color(0xff03a9f4);
-                    if(_idLoggedUser != item["userId"]){
+                    if (_idLoggedUser != item["userId"]) {
                       alignment = Alignment.centerLeft;
                       color = Colors.white;
                     }
@@ -161,12 +201,10 @@ class _MessagesState extends State<Messages> {
                               Radius.circular(8.0),
                             ),
                           ),
-                          child: Text(
-                            item["message"],
-                            style: TextStyle(
-                              fontSize: 18.0,
-                            ),
-                          ),
+                          child: item["messageType"] == "texto"
+                              ? Text(item["message"],
+                                  style: TextStyle(fontSize: 18.0))
+                              : Image.network(item["imageUrl"]),
                         ),
                       ),
                     );
@@ -176,37 +214,6 @@ class _MessagesState extends State<Messages> {
             }
         }
       },
-    );
-
-    var messageListView = Expanded(
-      child: ListView.builder(
-        itemCount: messageList2.length,
-        itemBuilder: (context, index) {
-          double containerWidth = MediaQuery.of(context).size.width * 0.8;
-          return Align(
-            alignment: Alignment.centerRight,
-            child: Padding(
-              padding: EdgeInsets.all(6.0),
-              child: Container(
-                width: containerWidth,
-                padding: EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.lightBlueAccent,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(8.0),
-                  ),
-                ),
-                child: Text(
-                  messageList2[index],
-                  style: TextStyle(
-                    fontSize: 18.0,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
     );
 
     return Scaffold(
