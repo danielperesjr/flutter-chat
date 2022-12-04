@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat/login.dart';
 import 'package:flutter_chat/screens/tab_chat.dart';
 import 'package:flutter_chat/screens/tab_contacts.dart';
+import 'dart:io';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -66,11 +67,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     return Scaffold(
       appBar: AppBar(
         title: Text("Flutter Chat"),
+        elevation: Platform.isIOS ? 0.0 : 4.0,
         bottom: TabBar(
           indicatorWeight: 4.0,
           labelStyle: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
           controller: _tabController,
-          indicatorColor: Colors.white,
+          indicatorColor: Platform.isIOS ? Colors.grey[400] : Colors.white,
           tabs: [
             Tab(
               text: "Conversas",

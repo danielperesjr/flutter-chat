@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/model/chat.dart';
 import 'package:flutter_chat/model/chat_user.dart';
@@ -73,7 +74,7 @@ class _MessagesState extends State<Messages> {
     });
   }
 
-  void _saveChat(Message msg){
+  void _saveChat(Message msg) {
     Chat chatSender = Chat();
     chatSender.idSender = _idLoggedUser!;
     chatSender.idReceiver = _idReceiverUser!;
@@ -91,8 +92,6 @@ class _MessagesState extends State<Messages> {
     chatReceiver.photoPath = widget.contact.imageUrl;
     chatReceiver.messageType = msg.messageType;
     chatReceiver.saveChat();
-
-
   }
 
   Future _recoverImageUrl(TaskSnapshot taskSnapshot) async {
@@ -153,21 +152,32 @@ class _MessagesState extends State<Messages> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(32),
                   ),
-                  prefixIcon: _isUploading == true ? CircularProgressIndicator()
-                  : IconButton(onPressed: () => _sendImage(), icon: Icon(Icons.camera_alt)),
+                  prefixIcon: _isUploading == true
+                      ? CircularProgressIndicator()
+                      : IconButton(
+                          onPressed: () => _sendImage(),
+                          icon: Icon(Icons.camera_alt)),
                 ),
               ),
             ),
           ),
-          FloatingActionButton(
-            backgroundColor: const Color(0xff03a9f4),
-            child: Icon(
-              Icons.send,
-              color: Colors.white,
-            ),
-            mini: true,
-            onPressed: () => _sendMessage(),
-          ),
+          Platform.isIOS
+              ? CupertinoButton(
+                  child: Text(
+                    "Enviar",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: () => _sendMessage(),
+                )
+              : FloatingActionButton(
+                  backgroundColor: const Color(0xff03a9f4),
+                  child: Icon(
+                    Icons.send,
+                    color: Colors.white,
+                  ),
+                  mini: true,
+                  onPressed: () => _sendMessage(),
+                ),
         ],
       ),
     );
