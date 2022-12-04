@@ -16,7 +16,7 @@ class Messages extends StatefulWidget {
 class _MessagesState extends State<Messages> {
   String? _idLoggedUser;
   String? _idReceiverUser;
-  List<String> messageList = [
+  List<String> messageList2 = [
     "Olá, tudo bem?",
     "Me passa o nome daquela série!",
     "Vamos sair hoje?",
@@ -24,6 +24,7 @@ class _MessagesState extends State<Messages> {
   ];
 
   TextEditingController controllerMessage = TextEditingController();
+  FirebaseFirestore db = FirebaseFirestore.instance;
 
   _sendMessage() {
     String textMessage = controllerMessage.text;
@@ -35,13 +36,13 @@ class _MessagesState extends State<Messages> {
       message.messageType = "texto";
 
       _saveMessage(_idLoggedUser!, _idReceiverUser!, message);
+      _saveMessage(_idReceiverUser!, _idLoggedUser!, message);
     }
   }
 
   _sendImage() {}
 
   Future _saveMessage(String idSender, String idReceiver, Message msg) async {
-    FirebaseFirestore db = FirebaseFirestore.instance;
     await db
         .collection("messages")
         .doc(idSender)
@@ -107,9 +108,79 @@ class _MessagesState extends State<Messages> {
       ),
     );
 
+    var stream = StreamBuilder(
+      stream: db
+          .collection("messages")
+          .doc(_idLoggedUser)
+          .collection(_idReceiverUser!)
+          .snapshots(),
+      builder: (context, snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            return Center(
+              child: Column(
+                children: [
+                  Text("Carregando mensagens..."),
+                  CircularProgressIndicator(),
+                ],
+              ),
+            );
+          case ConnectionState.active:
+          case ConnectionState.done:
+            QuerySnapshot querySnapshot = snapshot.requireData;
+            if (snapshot.hasError) {
+              return Expanded(
+                child: Text("Erro ao carregar os dados."),
+              );
+            } else {
+              return Expanded(
+                child: ListView.builder(
+                  itemCount: querySnapshot.docs.length,
+                  itemBuilder: (context, index) {
+                    List<DocumentSnapshot> messageList = querySnapshot.docs.toList();
+                    DocumentSnapshot item = messageList[index];
+                    double containerWidth =
+                        MediaQuery.of(context).size.width * 0.8;
+                    Alignment alignment = Alignment.centerRight;
+                    Color color = Color(0xff03a9f4);
+                    if(_idLoggedUser != item["userId"]){
+                      alignment = Alignment.centerLeft;
+                      color = Colors.white;
+                    }
+                    return Align(
+                      alignment: alignment,
+                      child: Padding(
+                        padding: EdgeInsets.all(6.0),
+                        child: Container(
+                          width: containerWidth,
+                          padding: EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(8.0),
+                            ),
+                          ),
+                          child: Text(
+                            item["message"],
+                            style: TextStyle(
+                              fontSize: 18.0,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            }
+        }
+      },
+    );
+
     var messageListView = Expanded(
       child: ListView.builder(
-        itemCount: messageList.length,
+        itemCount: messageList2.length,
         itemBuilder: (context, index) {
           double containerWidth = MediaQuery.of(context).size.width * 0.8;
           return Align(
@@ -126,7 +197,7 @@ class _MessagesState extends State<Messages> {
                   ),
                 ),
                 child: Text(
-                  messageList[index],
+                  messageList2[index],
                   style: TextStyle(
                     fontSize: 18.0,
                   ),
@@ -167,7 +238,7 @@ class _MessagesState extends State<Messages> {
             padding: EdgeInsets.all(8.0),
             child: Column(
               children: [
-                messageListView,
+                stream,
                 messageBox,
               ],
             ),
