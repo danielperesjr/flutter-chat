@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,6 +27,8 @@ class _MessagesState extends State<Messages> {
   bool _isUploading = false;
 
   TextEditingController controllerMessage = TextEditingController();
+  final _controller = StreamController<QuerySnapshot>.broadcast();
+  ScrollController _scrollController = ScrollController();
   FirebaseFirestore db = FirebaseFirestore.instance;
 
   _sendMessage() {
@@ -122,6 +126,23 @@ class _MessagesState extends State<Messages> {
     User? loggedUser = auth.currentUser;
     _idLoggedUser = loggedUser!.uid;
     _idReceiverUser = widget.contact.userId;
+
+    _addMessagesListener();
+  }
+
+  Stream<QuerySnapshot> _addMessagesListener() {
+    final stream = db
+        .collection("messages")
+        .doc(_idLoggedUser)
+        .collection(_idReceiverUser!)
+        .snapshots();
+    stream.listen((chatData) {
+      _controller.add(chatData);
+      Timer(Duration(seconds: 1), (){
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      });
+    });
+    return _controller.stream;
   }
 
   @override
@@ -183,11 +204,7 @@ class _MessagesState extends State<Messages> {
     );
 
     var stream = StreamBuilder(
-      stream: db
-          .collection("messages")
-          .doc(_idLoggedUser)
-          .collection(_idReceiverUser!)
-          .snapshots(),
+      stream: _controller.stream,
       builder: (context, snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.none:
@@ -210,6 +227,7 @@ class _MessagesState extends State<Messages> {
             } else {
               return Expanded(
                 child: ListView.builder(
+                  controller: _scrollController,
                   itemCount: querySnapshot.docs.length,
                   itemBuilder: (context, index) {
                     List<DocumentSnapshot> messageList =
