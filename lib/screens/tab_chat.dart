@@ -1,5 +1,9 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/model/chat.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TabChat extends StatefulWidget {
   const TabChat({Key? key}) : super(key: key);
@@ -9,45 +13,118 @@ class TabChat extends StatefulWidget {
 }
 
 class _TabChatState extends State<TabChat> {
-  List<Chat> chatList = [
-    Chat("Ana Clara", "Olá, tudo bem?",
-        "https://firebasestorage.googleapis.com/v0/b/flutter-chat-48bc6.appspot.com/o/profile%2Fperfil1.jpg?alt=media&token=4a56c072-45c8-40df-b3d7-aaa334d96129"),
-    Chat("Pedro Silva", "Me passa o nome daquela série!",
-        "https://firebasestorage.googleapis.com/v0/b/flutter-chat-48bc6.appspot.com/o/profile%2Fperfil2.jpg?alt=media&token=64c6b87a-bbe7-42e7-b49a-93fcf7487852"),
-    Chat("Marcela Almeida", "Vamos sair hoje?",
-        "https://firebasestorage.googleapis.com/v0/b/flutter-chat-48bc6.appspot.com/o/profile%2Fperfil3.jpg?alt=media&token=6df2a5b4-70e4-46ab-856f-e6f0db50ebc3"),
-    Chat("José Renato", "Você não vai acreditar...",
-        "https://firebasestorage.googleapis.com/v0/b/flutter-chat-48bc6.appspot.com/o/profile%2Fperfil4.jpg?alt=media&token=7d5250a7-a452-4864-894d-6a80a135e0d3"),
-  ];
+  FirebaseFirestore db = FirebaseFirestore.instance;
+  List<Chat> _chatList = [];
+  String? _idLoggedUser;
+  final _controller = StreamController<QuerySnapshot>.broadcast();
+
+  @override
+  void initState() {
+    super.initState();
+    _recoverUserData();
+
+    Chat chat = Chat();
+    chat.name = "Ana Clara";
+    chat.message = "Olá, tudo bem?";
+    chat.photoPath =
+        "https://firebasestorage.googleapis.com/v0/b/flutter-chat-48bc6.appspot.com/o/profile%2Fperfil1.jpg?alt=media&token=4a56c072-45c8-40df-b3d7-aaa334d96129";
+
+    _chatList.add(chat);
+  }
+
+  Stream<QuerySnapshot> _addChatListener() {
+    final stream = db
+        .collection("chat")
+        .doc(_idLoggedUser)
+        .collection("last_chat")
+        .snapshots();
+    stream.listen((chatData) {
+      _controller.add(chatData);
+    });
+    return _controller.stream;
+  }
+
+  void _recoverUserData() async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+    User? loggedUser = auth.currentUser;
+    _idLoggedUser = loggedUser!.uid;
+
+    _addChatListener();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-        itemCount: chatList.length,
-        itemBuilder: (context, index) {
-          Chat chat = chatList[index];
-          return ListTile(
-            contentPadding: EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-            leading: CircleAvatar(
-              maxRadius: 30.0,
-              backgroundColor: Colors.grey,
-              backgroundImage: NetworkImage(chat.photoPath),
-            ),
-            title: Text(
-              chat.name,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            subtitle: Text(
-              chat.message,
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 14,
-              ),
-            ),
-          );
+    return StreamBuilder<QuerySnapshot>(
+        stream: _controller.stream,
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+            case ConnectionState.waiting:
+              return Center(
+                child: Column(
+                  children: [
+                    Text("Carregando conversas..."),
+                    CircularProgressIndicator(),
+                  ],
+                ),
+              );
+            case ConnectionState.active:
+            case ConnectionState.done:
+              if (snapshot.hasError) {
+                return Text("Erro ao carregar os dados.");
+              } else {
+                QuerySnapshot querySnapshot = snapshot.requireData;
+                if (querySnapshot.docs.length == 0) {
+                  return Center(
+                    child: Text(
+                      "Você ainda não tem nenhuma mensagem :(",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                }
+                return ListView.builder(
+                    itemCount: _chatList.length,
+                    itemBuilder: (context, index) {
+                      List<DocumentSnapshot> chatList =
+                          querySnapshot.docs.toList();
+                      DocumentSnapshot item = chatList[index];
+                      String imageUrl = item["photoPath"];
+                      String messageType = item["messageType"];
+                      String message = item["message"];
+                      String name = item["name"];
+                      return ListTile(
+                        contentPadding:
+                            EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                        leading: CircleAvatar(
+                          maxRadius: 30.0,
+                          backgroundColor: Colors.grey,
+                          backgroundImage: imageUrl != null
+                              ? NetworkImage(imageUrl)
+                              : null,
+                        ),
+                        title: Text(
+                          name,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        subtitle: Text(
+                          messageType == "texto"
+                              ? message
+                              : "Imagem...",
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                        ),
+                      );
+                    });
+              }
+          }
         });
   }
 }
