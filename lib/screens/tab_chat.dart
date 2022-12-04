@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/model/chat.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_chat/model/chat_user.dart';
 
 class TabChat extends StatefulWidget {
   const TabChat({Key? key}) : super(key: key);
@@ -53,6 +54,12 @@ class _TabChatState extends State<TabChat> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    _controller.close();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
         stream: _controller.stream,
@@ -95,7 +102,22 @@ class _TabChatState extends State<TabChat> {
                       String messageType = item["messageType"];
                       String message = item["message"];
                       String name = item["name"];
+                      String idReceiver = item["idReceiver"];
+
+                      ChatUser chatUser = ChatUser();
+                      chatUser.name = name;
+                      chatUser.imageUrl = imageUrl;
+                      chatUser.userId = idReceiver;
+
+
                       return ListTile(
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            "/messages",
+                            arguments: chatUser,
+                          );
+                        },
                         contentPadding:
                             EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
                         leading: CircleAvatar(
