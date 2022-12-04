@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/model/chat.dart';
 import 'package:flutter_chat/model/chat_user.dart';
 import 'package:flutter_chat/model/message.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -36,6 +37,8 @@ class _MessagesState extends State<Messages> {
 
       _saveMessage(_idLoggedUser!, _idReceiverUser!, message);
       _saveMessage(_idReceiverUser!, _idLoggedUser!, message);
+
+      _saveChat(message);
     }
   }
 
@@ -68,6 +71,28 @@ class _MessagesState extends State<Messages> {
         });
       }
     });
+  }
+
+  void _saveChat(Message msg){
+    Chat chatSender = Chat();
+    chatSender.idSender = _idLoggedUser!;
+    chatSender.idReceiver = _idReceiverUser!;
+    chatSender.message = msg.message;
+    chatSender.name = widget.contact.name;
+    chatSender.photoPath = widget.contact.imageUrl;
+    chatSender.messageType = msg.messageType;
+    chatSender.saveChat();
+
+    Chat chatReceiver = Chat();
+    chatReceiver.idSender = _idReceiverUser!;
+    chatReceiver.idReceiver = _idLoggedUser!;
+    chatReceiver.message = msg.message;
+    chatReceiver.name = widget.contact.name;
+    chatReceiver.photoPath = widget.contact.imageUrl;
+    chatReceiver.messageType = msg.messageType;
+    chatReceiver.saveChat();
+
+
   }
 
   Future _recoverImageUrl(TaskSnapshot taskSnapshot) async {
