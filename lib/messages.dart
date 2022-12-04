@@ -38,6 +38,7 @@ class _MessagesState extends State<Messages> {
       message.userId = _idLoggedUser!;
       message.message = textMessage;
       message.imageUrl = "";
+      message.date = Timestamp.now().toString();
       message.messageType = "texto";
 
       _saveMessage(_idLoggedUser!, _idReceiverUser!, message);
@@ -106,6 +107,7 @@ class _MessagesState extends State<Messages> {
     message.message = "";
     message.imageUrl = url;
     message.messageType = "imagem";
+    message.date = Timestamp.now().toString();
 
     _saveMessage(_idLoggedUser!, _idReceiverUser!, message);
     _saveMessage(_idReceiverUser!, _idLoggedUser!, message);
@@ -135,6 +137,7 @@ class _MessagesState extends State<Messages> {
         .collection("messages")
         .doc(_idLoggedUser)
         .collection(_idReceiverUser!)
+        .orderBy("date", descending: false)
         .snapshots();
     stream.listen((chatData) {
       _controller.add(chatData);
